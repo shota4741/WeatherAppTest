@@ -499,7 +499,7 @@
             </div>
             <div class="search-container">
                 <span class="search-icon">🔍</span>
-                <input type="text" class="search-box" id="city-input" placeholder="都市名で検索...">
+                <input type="text" class="search-box" id="city-input" placeholder="都市名で検索... (例: 東京, Tokyo, パリ, New York)">
             </div>
             <div></div>
         </header>
@@ -602,7 +602,7 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // APIキー
-            const apiKey = '82719a59d8df41b5a00e4a823c536345'; // OpenWeatherMap APIキーを入力してください
+            const apiKey = '82719a59d8df41b5a00e4a823c536345';
             
             // DOM要素
             const cityInput = document.getElementById('city-input');
@@ -617,19 +617,52 @@
             const hourlyContainer = document.getElementById('hourly-forecast-container');
             const dailyContainer = document.getElementById('daily-forecast-container');
             
-            // 日本の主要都市リスト
+            // 日本の主要都市リスト（日本語 -> 英語マッピング）
             const majorCities = [
-                { name: '東京', id: 'tokyo' },
-                { name: '大阪', id: 'osaka' },
-                { name: '名古屋', id: 'nagoya' },
-                { name: '札幌', id: 'sapporo' },
-                { name: '福岡', id: 'fukuoka' },
-                { name: '京都', id: 'kyoto' },
-                { name: '横浜', id: 'yokohama' },
-                { name: '神戸', id: 'kobe' },
-                { name: '仙台', id: 'sendai' },
-                { name: '広島', id: 'hiroshima' }
+                { name: '東京', englishName: 'Tokyo,JP' },
+                { name: '大阪', englishName: 'Osaka,JP' },
+                { name: '名古屋', englishName: 'Nagoya,JP' },
+                { name: '札幌', englishName: 'Sapporo,JP' },
+                { name: '福岡', englishName: 'Fukuoka,JP' },
+                { name: '京都', englishName: 'Kyoto,JP' },
+                { name: '横浜', englishName: 'Yokohama,JP' },
+                { name: '神戸', englishName: 'Kobe,JP' },
+                { name: '仙台', englishName: 'Sendai,JP' },
+                { name: '広島', englishName: 'Hiroshima,JP' }
             ];
+            
+            // 拡張都市名マッピング
+            const cityNameMapping = {
+                // 日本の都市
+                '東京': 'Tokyo,JP', '大阪': 'Osaka,JP', '名古屋': 'Nagoya,JP',
+                '札幌': 'Sapporo,JP', '福岡': 'Fukuoka,JP', '京都': 'Kyoto,JP',
+                '横浜': 'Yokohama,JP', '神戸': 'Kobe,JP', '仙台': 'Sendai,JP',
+                '広島': 'Hiroshima,JP', '千葉': 'Chiba,JP', '静岡': 'Shizuoka,JP',
+                '新潟': 'Niigata,JP', '熊本': 'Kumamoto,JP', '鹿児島': 'Kagoshima,JP',
+                '金沢': 'Kanazawa,JP', '岡山': 'Okayama,JP', '高松': 'Takamatsu,JP',
+                '富山': 'Toyama,JP', '長野': 'Nagano,JP', '盛岡': 'Morioka,JP',
+                '青森': 'Aomori,JP', '秋田': 'Akita,JP', '山形': 'Yamagata,JP',
+                '福島': 'Fukushima,JP', '水戸': 'Mito,JP', '宇都宮': 'Utsunomiya,JP',
+                '前橋': 'Maebashi,JP', '甲府': 'Kofu,JP', '津': 'Tsu,JP',
+                '大津': 'Otsu,JP', '奈良': 'Nara,JP', '和歌山': 'Wakayama,JP',
+                '鳥取': 'Tottori,JP', '松江': 'Matsue,JP', '山口': 'Yamaguchi,JP',
+                '徳島': 'Tokushima,JP', '松山': 'Matsuyama,JP', '高知': 'Kochi,JP',
+                '佐賀': 'Saga,JP', '長崎': 'Nagasaki,JP', '大分': 'Oita,JP',
+                '宮崎': 'Miyazaki,JP', '那覇': 'Naha,JP',
+                
+                // 世界の主要都市
+                'ニューヨーク': 'New York,US', 'ロサンゼルス': 'Los Angeles,US',
+                'ロンドン': 'London,GB', 'パリ': 'Paris,FR', 'ベルリン': 'Berlin,DE',
+                'ローマ': 'Rome,IT', 'マドリード': 'Madrid,ES', 'アムステルダム': 'Amsterdam,NL',
+                'ソウル': 'Seoul,KR', '釜山': 'Busan,KR', '北京': 'Beijing,CN',
+                '上海': 'Shanghai,CN', '香港': 'Hong Kong,HK', '台北': 'Taipei,TW',
+                'バンコク': 'Bangkok,TH', 'シンガポール': 'Singapore,SG',
+                'ジャカルタ': 'Jakarta,ID', 'マニラ': 'Manila,PH',
+                'ムンバイ': 'Mumbai,IN', 'デリー': 'Delhi,IN', 'シドニー': 'Sydney,AU',
+                'メルボルン': 'Melbourne,AU', 'モスクワ': 'Moscow,RU',
+                'サンパウロ': 'Sao Paulo,BR', 'リオデジャネイロ': 'Rio de Janeiro,BR',
+                'カイロ': 'Cairo,EG', 'ケープタウン': 'Cape Town,ZA'
+            };
             
             // 周辺エリアのリスト
             let nearbyCities = [];
@@ -658,7 +691,7 @@
                     li.dataset.city = city.name;
                     li.innerHTML = `<span>🏙️</span> ${city.name}`;
                     li.addEventListener('click', () => {
-                        getWeatherByCity(city.name);
+                        getWeatherByCity(city.englishName);
                         
                         // アクティブクラスを設定
                         document.querySelectorAll('.city-item').forEach(item => {
@@ -679,7 +712,8 @@
                     li.dataset.city = city.name;
                     li.innerHTML = `<span>📍</span> ${city.name}`;
                     li.addEventListener('click', () => {
-                        getWeatherByCity(city.name);
+                        const searchName = cityNameMapping[city.name] || city.name;
+                        getWeatherByCity(searchName);
                         
                         // アクティブクラスを設定
                         document.querySelectorAll('.city-item').forEach(item => {
@@ -699,7 +733,8 @@
                     chip.className = 'area-chip';
                     chip.textContent = city.name;
                     chip.addEventListener('click', () => {
-                        getWeatherByCity(city.name);
+                        const searchName = cityNameMapping[city.name] || city.name;
+                        getWeatherByCity(searchName);
                     });
                     areaChipsEl.appendChild(chip);
                 });
@@ -787,7 +822,7 @@
                 if (e.key === 'Enter') {
                     const cityName = cityInput.value.trim();
                     if (cityName) {
-                        getWeatherByCity(cityName);
+                        searchWeatherByName(cityName);
                     }
                 }
             });
@@ -797,27 +832,21 @@
                 // 東京大都市圏の例
                 if (lat > 35.4 && lat < 35.8 && lon > 139.5 && lon < 140.0) {
                     nearbyCities = [
-                        { name: '新宿', id: 'shinjuku' },
-                        { name: '渋谷', id: 'shibuya' },
-                        { name: '池袋', id: 'ikebukuro' },
-                        { name: '品川', id: 'shinagawa' },
-                        { name: '町田', id: 'machida' }
+                        { name: '新宿' }, { name: '渋谷' }, { name: '池袋' },
+                        { name: '品川' }, { name: '町田' }
                     ];
                 } 
                 // 大阪大都市圏の例
                 else if (lat > 34.5 && lat < 34.8 && lon > 135.3 && lon < 135.7) {
                     nearbyCities = [
-                        { name: '梅田', id: 'umeda' },
-                        { name: '難波', id: 'namba' },
-                        { name: '堺', id: 'sakai' },
-                        { name: '豊中', id: 'toyonaka' },
-                        { name: '高槻', id: 'takatsuki' }
+                        { name: '梅田' }, { name: '難波' }, { name: '堺' },
+                        { name: '豊中' }, { name: '高槻' }
                     ];
                 }
                 // その他のエリア
                 else {
                     nearbyCities = majorCities
-                        .map(city => ({ ...city, distance: Math.random() * 100 }))
+                        .map(city => ({ name: city.name, distance: Math.random() * 100 }))
                         .sort((a, b) => a.distance - b.distance)
                         .slice(0, 5);
                 }
@@ -826,42 +855,72 @@
                 renderAreaChips();
             }
             
-            // 都市名から天気情報と予報を取得する関数
-            function getWeatherByCity(cityName) {
-                console.log('都市名で天気を取得:', cityName);
+            // 都市名検索機能（改良版）
+            async function searchWeatherByName(cityName) {
+                console.log('都市名で検索:', cityName);
                 
                 // 表示状態のリセット
                 weatherDataEl.style.display = 'none';
                 errorMessageEl.style.display = 'none';
                 loadingEl.style.display = 'flex';
                 
-                // APIのテスト用URL構築
-                const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cityName)}&appid=${apiKey}&units=metric&lang=ja`;
-                const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(cityName)}&appid=${apiKey}&units=metric&lang=ja`;
-                
-                console.log('現在天気API URL:', currentWeatherUrl);
-                console.log('予報API URL:', forecastUrl);
-                
-                // 現在の天気と5日間予報を並行して取得
-                Promise.all([
-                    fetch(currentWeatherUrl).then(response => {
-                        console.log('現在天気APIレスポンス:', response.status, response.statusText);
-                        if (!response.ok) {
-                            throw new Error(`現在天気API エラー: ${response.status} ${response.statusText}`);
+                try {
+                    // まず、マッピングテーブルから検索
+                    let searchName = cityNameMapping[cityName] || cityName;
+                    console.log('検索名:', searchName);
+                    
+                    // 直接天気データを取得を試行
+                    let success = await getWeatherByCity(searchName);
+                    
+                    if (!success) {
+                        // 失敗した場合、GeoCoding APIを使用
+                        console.log('GeoCoding APIを使用して再試行');
+                        const geocodingUrl = `https://api.openweathermap.org/geo/1.0/direct?q=${encodeURIComponent(cityName)}&limit=5&appid=${apiKey}`;
+                        
+                        const geocodingResponse = await fetch(geocodingUrl);
+                        if (geocodingResponse.ok) {
+                            const geocodingData = await geocodingResponse.json();
+                            
+                            if (geocodingData.length > 0) {
+                                const location = geocodingData[0];
+                                console.log('GeoCoding結果:', location);
+                                await getWeatherByCoords(location.lat, location.lon);
+                            } else {
+                                throw new Error('都市が見つかりませんでした');
+                            }
+                        } else {
+                            throw new Error('都市検索に失敗しました');
                         }
-                        return response.json();
-                    }),
-                    fetch(forecastUrl).then(response => {
-                        console.log('予報APIレスポンス:', response.status, response.statusText);
-                        if (!response.ok) {
-                            throw new Error(`予報API エラー: ${response.status} ${response.statusText}`);
-                        }
-                        return response.json();
-                    })
-                ])
-                .then(([currentData, forecastData]) => {
-                    console.log('現在天気データ:', currentData);
-                    console.log('予報データ:', forecastData);
+                    }
+                } catch (error) {
+                    console.error('検索エラー:', error);
+                    loadingEl.style.display = 'none';
+                    errorMessageEl.textContent = `「${cityName}」の天気情報が見つかりませんでした。都市名を確認してください。`;
+                    errorMessageEl.style.display = 'block';
+                }
+            }
+            
+            // 都市名から天気情報と予報を取得する関数（改良版）
+            async function getWeatherByCity(cityName) {
+                console.log('都市名で天気を取得:', cityName);
+                
+                try {
+                    const currentWeatherUrl = `https://api.openweathermap.org/data/2.5/weather?q=${encodeURIComponent(cityName)}&appid=${apiKey}&units=metric&lang=ja`;
+                    const forecastUrl = `https://api.openweathermap.org/data/2.5/forecast?q=${encodeURIComponent(cityName)}&appid=${apiKey}&units=metric&lang=ja`;
+                    
+                    const [currentResponse, forecastResponse] = await Promise.all([
+                        fetch(currentWeatherUrl),
+                        fetch(forecastUrl)
+                    ]);
+                    
+                    if (!currentResponse.ok || !forecastResponse.ok) {
+                        return false; // 失敗を示す
+                    }
+                    
+                    const [currentData, forecastData] = await Promise.all([
+                        currentResponse.json(),
+                        forecastResponse.json()
+                    ]);
                     
                     displayWeather(currentData);
                     displayHourlyForecast(forecastData);
@@ -872,44 +931,36 @@
                     
                     // 周辺都市を取得
                     fetchNearbyCities(currentData.coord.lat, currentData.coord.lon);
-                })
-                .catch(error => {
+                    
+                    return true; // 成功を示す
+                } catch (error) {
                     console.error('API取得エラー:', error);
-                    loadingEl.style.display = 'none';
-                    
-                    let errorMessage = '天気情報の取得に失敗しました。';
-                    if (error.message.includes('404')) {
-                        errorMessage = '都市が見つかりませんでした。正しい都市名を入力してください。';
-                    } else if (error.message.includes('401')) {
-                        errorMessage = 'APIキーが無効です。設定を確認してください。';
-                    } else if (error.message.includes('Failed to fetch')) {
-                        errorMessage = 'ネットワーク接続を確認してください。HTTPSでアクセスしていることを確認してください。';
-                    }
-                    
-                    errorMessageEl.textContent = errorMessage;
-                    errorMessageEl.style.display = 'block';
-                });
+                    return false; // 失敗を示す
+                }
             }
             
             // 緯度・経度から天気情報と予報を取得する関数
-            function getWeatherByCoords(lat, lon) {
+            async function getWeatherByCoords(lat, lon) {
                 // 表示状態のリセット
                 weatherDataEl.style.display = 'none';
                 errorMessageEl.style.display = 'none';
                 loadingEl.style.display = 'flex';
                 
-                // 現在の天気と5日間予報を並行して取得
-                Promise.all([
-                    fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`),
-                    fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`)
-                ])
-                .then(responses => {
-                    if (!responses[0].ok || !responses[1].ok) {
+                try {
+                    const [currentResponse, forecastResponse] = await Promise.all([
+                        fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`),
+                        fetch(`https://api.openweathermap.org/data/2.5/forecast?lat=${lat}&lon=${lon}&appid=${apiKey}&units=metric&lang=ja`)
+                    ]);
+                    
+                    if (!currentResponse.ok || !forecastResponse.ok) {
                         throw new Error('天気情報の取得に失敗しました。');
                     }
-                    return Promise.all([responses[0].json(), responses[1].json()]);
-                })
-                .then(([currentData, forecastData]) => {
+                    
+                    const [currentData, forecastData] = await Promise.all([
+                        currentResponse.json(),
+                        forecastResponse.json()
+                    ]);
+                    
                     displayWeather(currentData);
                     displayHourlyForecast(forecastData);
                     displayDailyForecast(forecastData);
@@ -928,13 +979,12 @@
                     
                     // 周辺都市を取得
                     fetchNearbyCities(lat, lon);
-                })
-                .catch(error => {
+                } catch (error) {
                     console.error('エラー詳細:', error);
                     loadingEl.style.display = 'none';
                     errorMessageEl.textContent = error.message;
                     errorMessageEl.style.display = 'block';
-                });
+                }
             }
             
             // 天気情報を表示する関数
@@ -1002,34 +1052,16 @@
                         // エラー時のコールバック
                         (error) => {
                             console.error('位置情報エラー:', error);
-                            console.error('エラーコード:', error.code);
-                            console.error('エラーメッセージ:', error.message);
                             loadingEl.style.display = 'none';
                             
-                            let errorMsg = '';
-                            switch(error.code) {
-                                case error.PERMISSION_DENIED:
-                                    errorMsg = '位置情報の使用が許可されていません。東京の天気を表示します。';
-                                    break;
-                                case error.POSITION_UNAVAILABLE:
-                                    errorMsg = '現在位置を取得できません。東京の天気を表示します。';
-                                    break;
-                                case error.TIMEOUT:
-                                    errorMsg = '位置情報の取得がタイムアウトしました。東京の天気を表示します。';
-                                    break;
-                                default:
-                                    errorMsg = '位置情報を取得できませんでした。東京の天気を表示します。';
-                            }
-                            console.log('位置情報エラー対応:', errorMsg);
-                            
-                            // エラーメッセージを表示せず、直接東京の天気を取得
-                            getWeatherByCity('東京');
+                            // エラーの場合は東京の天気を表示
+                            getWeatherByCity('Tokyo,JP');
                         },
                         // オプション
                         {
-                            enableHighAccuracy: false, // 精度を下げて高速化
-                            timeout: 5000,             // タイムアウトを短縮
-                            maximumAge: 300000         // 5分間はキャッシュを使用
+                            enableHighAccuracy: false,
+                            timeout: 5000,
+                            maximumAge: 300000
                         }
                     );
                 } else {
@@ -1037,7 +1069,7 @@
                     loadingEl.style.display = 'none';
                     
                     // 位置情報が使えない場合は直接東京の天気を表示
-                    getWeatherByCity('東京');
+                    getWeatherByCity('Tokyo,JP');
                 }
             }
             
@@ -1045,11 +1077,7 @@
             renderMajorCities();
             
             // 初期表示時に現在位置の天気を表示
-            if (apiKey !== 'YOUR_API_KEY') {
-                getCurrentLocation();
-            } else {
-                showError('APIキーが設定されていません。APIキーを設定して再度お試しください。');
-            }
+            getCurrentLocation();
         });
     </script>
 </body>
